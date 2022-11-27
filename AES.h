@@ -15,7 +15,7 @@ public:
     const static vv_b8 Inverse_Sbox;
     const static vv_b8 Bx;
     const static vv_b8 Inverse_Bx;
-    const static v_b8 Rcon;
+    const static v_b8 Rc;
     vv_b8 ByteSub(const vv_b8& input)const;
     vv_b8 Inverse_ByteSub(const vv_b8& input)const;
     vv_b8 Shift_Row(vv_b8& input)const;
@@ -29,6 +29,12 @@ private:
     void KeyExpansion_Nk6(v_b8& ret,const vv_b8& init_key)const;
     void KeyExpansion_NK6Plus(v_b8&ret,const vv_b8& init_key)const;
     void XOR_Word(v_b8 &ret, int pos,const int &Nk)const;
+    v_b8 XOR_Word(v_b8&lhs,const v_b8&rhs)const;
+    void XOR_Word(v_b8 &ret, int pos,const int &Nk,const v_b8& rhs)const;
     v_b8 Rotl(const v_b8 &ret,int pos,const int &Nk)const;
+    void ByteSub_Rotl(v_b8& init)const;
+    void display(const b_8&)const;
+    void display(const v_b8&)const;
 };
+b_8 operator^(const b_8&lhs,const b_8&rhs);
 #endif

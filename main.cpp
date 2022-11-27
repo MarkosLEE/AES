@@ -16,7 +16,15 @@ int main(){
     };
     AES a;
     a.XOR(data,key);
-    auto ret=a.ByteSub(data);
+    cout<<hex;
+    auto ret=a.KeyExpansion(key);
+    for(int i=0; i<ret.size(); i++){
+        for(int col=0; col<ret[i][0].size(); col++){
+            for(int row=0; row<ret[i].size(); row++)
+            cout<<bitset<8>(ret[i][row][col].to_string()).to_ulong()<<'\t';
+        }
+        cout<<endl;
+    }    
     /*
     for(int i=0; i<ret[0].size(); i++){
         cout<<hex;
@@ -24,4 +32,5 @@ int main(){
             cout<<bitset<8>(ret[j][i].to_string()).to_ulong();
         }
     }*/
+    return 0;
 }

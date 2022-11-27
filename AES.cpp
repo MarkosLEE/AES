@@ -40,6 +40,7 @@ const vv_b8 AES::Inverse_Sbox={
 {0x17,0x2b,0x04,0x7e,0xba,0x77,0xd6,0x26,0xe1,0x69,0x14,0x63,0x55,0x21,0x0c,0x7d}
 };
 
+
 //行混淆矩阵
 const vv_b8 AES::Bx={
     {0x02,0x03,0x01,0x01},
@@ -55,8 +56,8 @@ const vv_b8 AES::Inverse_Bx={
     {0x0b,0x0d,0x09,0x0e}
 };
 
-const v_b8 AES::Rcon={
-    0x1,0x2,0x4,0x8
+const v_b8 AES::Rc={
+    0x1,0x2,0x4,0x8,0x10,0x20,0x40,0x80,0x1B,0x36
 };
 //S盒变换
 vv_b8 AES::ByteSub(const vv_b8& input)const{
@@ -92,7 +93,7 @@ vv_b8 AES::Shift_Row(vv_b8&input)const{
     for(int i=0; i<4; i++){
         v_b8 temp(length/8/4);
         for(int j=0; j<length/8/4; j++){
-            temp[j]=input[i][(j-i)%(length/8/4)];
+            temp[j]=input[i][(j-i+length/8/4)%(length/8/4)];
         }
         ret[i]=temp;
     }
@@ -131,10 +132,9 @@ b_8 AES::xtime(const b_8& x, const b_8 &data)const{
         }
         else{
             ret=ret<<1;
-            ret=ret^=b_8(27);
+            ret=ret^b_8(27);
         }
         times--;
-        cout<<ret<<endl;
     }
     return ret;
 }
@@ -143,10 +143,10 @@ b_8 AES::xtime(const b_8& x, const b_8 &data)const{
 void AES::MixColumn(vv_b8 &data){
     v_b8  temp(4);
     for(int i=0; i<data[0].size(); i++){
-        temp[0]=xtime(Bx[0][0],data[0][i])^=xtime(Bx[0][1],data[1][i])^=xtime(Bx[0][2],data[2][i])^=xtime(Bx[0][3],data[3][i]);
-        temp[1]=xtime(Bx[1][0],data[0][i])^=xtime(Bx[1][1],data[1][i])^=xtime(Bx[1][2],data[2][i])^=xtime(Bx[1][3],data[3][i]);
-        temp[2]=xtime(Bx[2][0],data[0][i])^=xtime(Bx[2][1],data[1][i])^=xtime(Bx[2][2],data[2][i])^=xtime(Bx[2][3],data[3][i]);
-        temp[3]=xtime(Bx[3][0],data[0][i])^=xtime(Bx[3][1],data[1][i])^=xtime(Bx[3][2],data[2][i])^=xtime(Bx[3][3],data[3][i]);       
+        temp[0]=xtime(Bx[0][0],data[0][i])^xtime(Bx[0][1],data[1][i])^xtime(Bx[0][2],data[2][i])^xtime(Bx[0][3],data[3][i]);
+        temp[1]=xtime(Bx[1][0],data[0][i])^xtime(Bx[1][1],data[1][i])^xtime(Bx[1][2],data[2][i])^xtime(Bx[1][3],data[3][i]);
+        temp[2]=xtime(Bx[2][0],data[0][i])^xtime(Bx[2][1],data[1][i])^xtime(Bx[2][2],data[2][i])^xtime(Bx[2][3],data[3][i]);
+        temp[3]=xtime(Bx[3][0],data[0][i])^xtime(Bx[3][1],data[1][i])^xtime(Bx[3][2],data[2][i])^xtime(Bx[3][3],data[3][i]);       
         data[0][i]=temp[0];
         data[1][i]=temp[1];
         data[2][i]=temp[2];
@@ -157,10 +157,10 @@ void AES::MixColumn(vv_b8 &data){
 void AES::Inverse_MixColumn(vv_b8 &data){
     v_b8  temp(4);
     for(int i=0; i<data[0].size(); i++){
-        temp[0]=xtime(Inverse_Bx[0][0],data[0][i])^=xtime(Inverse_Bx[0][1],data[1][i])^=xtime(Inverse_Bx[0][2],data[2][i])^=xtime(Inverse_Bx[0][3],data[3][i]);
-        temp[1]=xtime(Inverse_Bx[1][0],data[0][i])^=xtime(Inverse_Bx[1][1],data[1][i])^=xtime(Inverse_Bx[1][2],data[2][i])^=xtime(Inverse_Bx[1][3],data[3][i]);
-        temp[2]=xtime(Inverse_Bx[2][0],data[0][i])^=xtime(Inverse_Bx[2][1],data[1][i])^=xtime(Inverse_Bx[2][2],data[2][i])^=xtime(Inverse_Bx[2][3],data[3][i]);
-        temp[3]=xtime(Inverse_Bx[3][0],data[0][i])^=xtime(Inverse_Bx[3][1],data[1][i])^=xtime(Inverse_Bx[3][2],data[2][i])^=xtime(Inverse_Bx[3][3],data[3][i]);       
+        temp[0]=xtime(Inverse_Bx[0][0],data[0][i])^xtime(Inverse_Bx[0][1],data[1][i])^xtime(Inverse_Bx[0][2],data[2][i])^xtime(Inverse_Bx[0][3],data[3][i]);
+        temp[1]=xtime(Inverse_Bx[1][0],data[0][i])^xtime(Inverse_Bx[1][1],data[1][i])^xtime(Inverse_Bx[1][2],data[2][i])^xtime(Inverse_Bx[1][3],data[3][i]);
+        temp[2]=xtime(Inverse_Bx[2][0],data[0][i])^xtime(Inverse_Bx[2][1],data[1][i])^xtime(Inverse_Bx[2][2],data[2][i])^xtime(Inverse_Bx[2][3],data[3][i]);
+        temp[3]=xtime(Inverse_Bx[3][0],data[0][i])^xtime(Inverse_Bx[3][1],data[1][i])^xtime(Inverse_Bx[3][2],data[2][i])^xtime(Inverse_Bx[3][3],data[3][i]);       
         data[0][i]=temp[0];
         data[1][i]=temp[1];
         data[2][i]=temp[2];
@@ -171,16 +171,25 @@ void AES::Inverse_MixColumn(vv_b8 &data){
 //秘钥扩展
 vvv_b8 AES::KeyExpansion(const vv_b8& init_key)const{
     vvv_b8 ret(11,vv_b8 (4,v_b8(length/8/4)));
-    ret[1]=init_key;
+    ret[0]=init_key;
     v_b8 temp(11*length/8);
+    int Nk=length/8/4;
+    if(Nk<=6)KeyExpansion_Nk6(temp,init_key);
+    else KeyExpansion_NK6Plus(temp,init_key);
+    int count=16;
     for(int i=1; i<11; i++){
-        for(int col=0; col<ret.size(); col++){
-            for(int row=0; row<ret[0].size(); row++){
-
+        for(int col=0; col<ret[i].size(); col++){
+            for(int row=0; row<ret[i][0].size(); row++){
+                ret[i][row][col]=temp[count];
+                //display(temp[count]);
+                count++;
             }
         }
     }
+    return ret;
 }
+
+//列数少于等于6时的扩展方法
 void AES::KeyExpansion_Nk6(v_b8 &ret,const vv_b8& init_key)const{
     int count=0;
     int Nk=length/8/4;
@@ -190,10 +199,24 @@ void AES::KeyExpansion_Nk6(v_b8 &ret,const vv_b8& init_key)const{
             count++;
         }
     }
+    //代表当前第几个字（四个字节为一个字）
     count=count/4;
-    for(; count<ret.size(); count++){
+    for(; count*4<11*length/8; count++){
         if(count%Nk==0){
             v_b8 temp=Rotl(ret,count,Nk);
+            display(temp);
+            ByteSub_Rotl(temp);
+            display(temp);
+            auto rc=b_8(0x01)<<(count/Nk-1);
+            //rc=rc>>1;
+            v_b8 Rcon={
+                Rc[count/Nk-1],0x00,0x00,0x00
+            };
+            auto rhs=XOR_Word(temp,Rcon);
+            display(temp);
+            display(Rcon);
+            display(rhs);
+            XOR_Word(ret,count*4,Nk,rhs);
         }
         else{
             XOR_Word(ret,count*4,Nk);
@@ -201,16 +224,67 @@ void AES::KeyExpansion_Nk6(v_b8 &ret,const vv_b8& init_key)const{
     }
 }
 
+//列数大于6时的扩展方法
+void AES::KeyExpansion_NK6Plus(v_b8 &ret,const vv_b8& init_key)const{}
+//异或运算，j不是Nk整数倍时的
 void AES::XOR_Word(v_b8 &ret,int pos,const int &Nk)const{
     for(int i=0; i<4; i++){
-        ret[i+pos]=ret[i+pos-4]^=ret[i+pos-Nk*4];
+        ret[i+pos]=ret[i+pos-4]^ret[i+pos-Nk*4];
     }
 }
-
+//最通用的异或运算
+v_b8 AES::XOR_Word( v_b8 &lhs, const v_b8 &rhs)const{
+    v_b8 ret(lhs.size());
+    for(int i=0; i<lhs.size(); i++){
+        ret[i]=lhs[i]^rhs[i];
+        /* display(lhs[i]);
+        display(rhs[i]);
+        display(ret[i]);
+        cout<<endl; */
+    }
+    return ret;
+}
+//Rotl运算
 v_b8 AES::Rotl(const v_b8 &ret,int pos,const int &Nk)const{
     v_b8 temp(4);
     for(int i=0; i<4; i++){
-        temp[i]=ret[(pos-1)*4+(i-1)%4];
+        temp[i]=ret[(pos-1)*4+(i+1)%4];
+        //cout<<hex<<bitset<8>(temp[i].to_string()).to_ulong()<<endl;
     }
     return temp;
+}
+//异或运算
+void AES::XOR_Word(v_b8 &ret, int pos,const int &Nk,const v_b8& rhs)const{
+    for(int i=0; i<rhs.size(); i++){
+        ret[i+pos]=ret[i+pos-Nk*4]^rhs[i];
+        // display(ret[i+pos]);
+        // display(ret[i+pos-Nk]);
+        // display(rhs[i]);
+    }
+}
+//用于对任意字节数组进行S盒变换
+void AES::ByteSub_Rotl(v_b8& init)const{
+    for(int i=0; i<init.size(); i++){
+        auto row=b_4(init[i].to_string().substr(0,4)).to_ulong();
+        auto col=b_4(init[i].to_string().substr(4,8)).to_ulong();
+        init[i]=Sbox[row][col];
+    }
+}
+
+//输出一个b_8的数
+void AES::display(const b_8&data)const{
+    cout<<hex<<bitset<8>(data.to_string()).to_ulong()<<'\t';
+}
+void AES::display(const v_b8&data)const{
+    for(int i=0; i<data.size(); i++)
+        display(data[i]);
+    cout<<endl;
+}
+//运算符重载
+b_8 operator^(const b_8&lhs,const b_8&rhs){
+    b_8 ret;
+    for(int i=0; i<8; i++){
+        ret[i]=lhs[i]^rhs[i];
+    }
+    return ret;
 }
