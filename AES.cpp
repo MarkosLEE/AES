@@ -55,9 +55,12 @@ const vv_b8 AES::Inverse_Bx={
     {0x0b,0x0d,0x09,0x0e}
 };
 
+const v_b8 AES::Rcon={
+    0x1,0x2,0x4,0x8
+};
 //S盒变换
 vv_b8 AES::ByteSub(const vv_b8& input)const{
-    vv_b8 ret(4,vector<b_8>(length/8/4));
+    vv_b8 ret(4,v_b8 (length/8/4));
     for(int i=0; i<4; i++){
         for(int j=0; j<length/8/4; j++){
             auto row=b_4(input[i][j].to_string().substr(0,4)).to_ulong();
@@ -71,7 +74,7 @@ vv_b8 AES::ByteSub(const vv_b8& input)const{
 
 //逆S盒变换
 vv_b8 AES::Inverse_ByteSub(const vv_b8& input)const{
-    vv_b8 ret(4,vector<b_8>(length/8/4));
+    vv_b8 ret(4,v_b8 (length/8/4));
     for(int i=0; i<4; i++){
         for(int j=0; j<length/8/4; j++){
             auto row=b_4(input[i][j].to_string().substr(0,4)).to_ulong();
@@ -85,9 +88,9 @@ vv_b8 AES::Inverse_ByteSub(const vv_b8& input)const{
 
 //行位移
 vv_b8 AES::Shift_Row(vv_b8&input)const{
-    vv_b8 ret(4,vector<b_8>(length/8/4));
+    vv_b8 ret(4,v_b8 (length/8/4));
     for(int i=0; i<4; i++){
-        vector<b_8>temp(length/8/4);
+        v_b8 temp(length/8/4);
         for(int j=0; j<length/8/4; j++){
             temp[j]=input[i][(j-i)%(length/8/4)];
         }
@@ -98,9 +101,9 @@ vv_b8 AES::Shift_Row(vv_b8&input)const{
 
 //逆行位移
 vv_b8 AES::Inverse_Shift_Row(vv_b8&input)const{
-    vv_b8 ret(4,vector<b_8>(length/8/4));
+    vv_b8 ret(4,v_b8 (length/8/4));
     for(int i=0; i<4; i++){
-        vector<b_8>temp(length/8/4);
+        v_b8 temp(length/8/4);
         for(int j=0; j<length/8/4; j++){
             temp[j]=input[i][(j+i)%(length/8/4)];
         }
@@ -138,7 +141,7 @@ b_8 AES::xtime(const b_8& x, const b_8 &data)const{
 
 //行混淆
 void AES::MixColumn(vv_b8 &data){
-    vector<b_8> temp(4);
+    v_b8  temp(4);
     for(int i=0; i<data[0].size(); i++){
         temp[0]=xtime(Bx[0][0],data[0][i])^=xtime(Bx[0][1],data[1][i])^=xtime(Bx[0][2],data[2][i])^=xtime(Bx[0][3],data[3][i]);
         temp[1]=xtime(Bx[1][0],data[0][i])^=xtime(Bx[1][1],data[1][i])^=xtime(Bx[1][2],data[2][i])^=xtime(Bx[1][3],data[3][i]);
@@ -152,7 +155,7 @@ void AES::MixColumn(vv_b8 &data){
 }
 //行混淆逆变换
 void AES::Inverse_MixColumn(vv_b8 &data){
-    vector<b_8> temp(4);
+    v_b8  temp(4);
     for(int i=0; i<data[0].size(); i++){
         temp[0]=xtime(Inverse_Bx[0][0],data[0][i])^=xtime(Inverse_Bx[0][1],data[1][i])^=xtime(Inverse_Bx[0][2],data[2][i])^=xtime(Inverse_Bx[0][3],data[3][i]);
         temp[1]=xtime(Inverse_Bx[1][0],data[0][i])^=xtime(Inverse_Bx[1][1],data[1][i])^=xtime(Inverse_Bx[1][2],data[2][i])^=xtime(Inverse_Bx[1][3],data[3][i]);
@@ -163,4 +166,51 @@ void AES::Inverse_MixColumn(vv_b8 &data){
         data[2][i]=temp[2];
         data[3][i]=temp[3];
     }
+}
+
+//秘钥扩展
+vvv_b8 AES::KeyExpansion(const vv_b8& init_key)const{
+    vvv_b8 ret(11,vv_b8 (4,v_b8(length/8/4)));
+    ret[1]=init_key;
+    v_b8 temp(11*length/8);
+    for(int i=1; i<11; i++){
+        for(int col=0; col<ret.size(); col++){
+            for(int row=0; row<ret[0].size(); row++){
+
+            }
+        }
+    }
+}
+void AES::KeyExpansion_Nk6(v_b8 &ret,const vv_b8& init_key)const{
+    int count=0;
+    int Nk=length/8/4;
+    for(int i=0; i<init_key[0].size(); i++){
+        for(int j=0; j<4; j++){
+            ret[count]=init_key[j][i];
+            count++;
+        }
+    }
+    count=count/4;
+    for(; count<ret.size(); count++){
+        if(count%Nk==0){
+            v_b8 temp=Rotl(ret,count,Nk);
+        }
+        else{
+            XOR_Word(ret,count*4,Nk);
+        }
+    }
+}
+
+void AES::XOR_Word(v_b8 &ret,int pos,const int &Nk)const{
+    for(int i=0; i<4; i++){
+        ret[i+pos]=ret[i+pos-4]^=ret[i+pos-Nk*4];
+    }
+}
+
+v_b8 AES::Rotl(const v_b8 &ret,int pos,const int &Nk)const{
+    v_b8 temp(4);
+    for(int i=0; i<4; i++){
+        temp[i]=ret[(pos-1)*4+(i-1)%4];
+    }
+    return temp;
 }
