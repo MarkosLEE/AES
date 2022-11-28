@@ -122,7 +122,7 @@ void AES::XOR(vv_b8& input, const vv_b8&key)const{
     }
 }
 
-//xtime函数
+//xtime函数，times是乘的x的次数
 b_8 AES::xtime(int times, const b_8 &data)const{
     b_8 ret(data);
     //if(times==0)return 0;
@@ -139,7 +139,7 @@ b_8 AES::xtime(int times, const b_8 &data)const{
     }
     return ret;
 }
-//乘法
+//有限域上的乘法
 b_8 AES::mul(const b_8&data,const b_8&x)const{
     b_8 ret(0);
     int count=0;
@@ -308,8 +308,8 @@ b_8 operator^(const b_8&lhs,const b_8&rhs){
 void AES::Encryption(vv_b8&mess,const vv_b8&key)const{
     auto Expansion_Key=KeyExpansion(key);
     XOR(mess,Expansion_Key[0]);
-    cout<<"第0轮"<<endl;
-    display(mess);
+    //cout<<"第0轮"<<endl;
+    //display(mess);
     for(int i=1; i<10; i++){
         cout<<"第"<<i<<"轮:"<<endl;
         mess=ByteSub(mess);
@@ -328,25 +328,25 @@ void AES::Encryption(vv_b8&mess,const vv_b8&key)const{
     XOR(mess,Expansion_Key[10]);
     //display(mess);
 }
-
+//解密
 void AES::Decryption(vv_b8&mess,const vv_b8&key)const{
-    cout<<"第0轮"<<endl;
+    //cout<<"第0轮"<<endl;
     auto Expansion_Key=KeyExpansion(key);
     Inverse_KeyExpansion(Expansion_Key);
     XOR(mess,Expansion_Key[10]);
-    display(mess);
-    display(Expansion_Key[10]);
+    //display(mess);
+    //display(Expansion_Key[10]);
     for(int i=9; i>0; i--){
-        cout<<i<<endl;
+        //cout<<i<<endl;
         mess=Inverse_ByteSub(mess);
-        display(mess);
+        //display(mess);
         mess=Inverse_Shift_Row(mess);
-        display(mess);
+        //display(mess);
         Inverse_MixColumn(mess);
-        display(mess);
+        //display(mess);
         XOR(mess,Expansion_Key[i]);
-        display(Expansion_Key[i]);
-        display(mess);
+        //display(Expansion_Key[i]);
+        //display(mess);
     }
     mess=Inverse_ByteSub(mess);
     mess=Inverse_Shift_Row(mess);
