@@ -281,7 +281,7 @@ void AES::ByteSub_Rotl(v_b8& init)const{
 
 //输出一个b_8的数
 void AES::display(const b_8&data)const{
-    cout<<hex<<bitset<8>(data.to_string()).to_ulong()<<'\t';
+    cout<<hex<<bitset<8>(data.to_string()).to_ulong();
 }
 void AES::display(const v_b8&data)const{
     for(int i=0; i<data.size(); i++)
@@ -305,13 +305,14 @@ b_8 operator^(const b_8&lhs,const b_8&rhs){
 }
 
 //加密
-void AES::Encryption(vv_b8&mess,const vv_b8&key)const{
+vv_b8 AES::Encryption(const vv_b8&data,const vv_b8&key)const{
+    vv_b8 mess=data;
     auto Expansion_Key=KeyExpansion(key);
     XOR(mess,Expansion_Key[0]);
     //cout<<"第0轮"<<endl;
     //display(mess);
     for(int i=1; i<10; i++){
-        cout<<"第"<<i<<"轮:"<<endl;
+        //cout<<"第"<<i<<"轮:"<<endl;
         mess=ByteSub(mess);
         //display(mess);
         mess=Shift_Row(mess);
@@ -327,10 +328,12 @@ void AES::Encryption(vv_b8&mess,const vv_b8&key)const{
     //display(mess);
     XOR(mess,Expansion_Key[10]);
     //display(mess);
+    return mess;
 }
 //解密
-void AES::Decryption(vv_b8&mess,const vv_b8&key)const{
+vv_b8 AES::Decryption(const vv_b8&data,const vv_b8&key)const{
     //cout<<"第0轮"<<endl;
+    vv_b8 mess=data;
     auto Expansion_Key=KeyExpansion(key);
     Inverse_KeyExpansion(Expansion_Key);
     XOR(mess,Expansion_Key[10]);
@@ -351,4 +354,87 @@ void AES::Decryption(vv_b8&mess,const vv_b8&key)const{
     mess=Inverse_ByteSub(mess);
     mess=Inverse_Shift_Row(mess);
     XOR(mess,Expansion_Key[0]);
+    return mess;
+}
+//计算改变一位明文，密文改变多少位
+int AES::Change_Count(vv_b8& mess,const vv_b8&key,const vv_b8& init_ciphertext,const Pos& p)const{
+    mess[p.state_row][p.state_col][p.pos]=~mess[p.state_row][p.state_col][p.pos];
+    auto ret=Encryption(mess,key);
+    int count=0;//不同的位数
+    for(int i=0; i<mess.size(); i++){
+        for(int j=0; j<mess[0].size(); j++){
+            for(int pos=0; pos<mess[i][j].size(); pos++)
+                if(ret[i][j][pos]!=init_ciphertext[i][j][pos])count++;
+        }
+    }
+    mess[p.state_row][p.state_col][p.pos]=~mess[p.state_row][p.state_col][p.pos];
+    cout<<"密文改变："<<count<<"位"<<endl;
+    return count;
+}
+
+void AES::Change_Mess(vv_b8&data,const vv_b8&key)const{
+    int count=0;
+    Pos p;
+    p.pos=0;
+    p.state_col=0;
+    p.state_row=0;
+    auto ciphertext=Encryption(data,key);
+    for(int i=0; i<data.size(); i++){
+        for(int j=0; j<data[0].size(); j++){
+            for(int pos=0; pos<data[i][j].size(); pos++){
+                p.pos=pos;
+                p.state_col=j;
+                p.state_row=i;
+                count=count+Change_Count(data,key,ciphertext,p);
+            }
+        }
+    }
+    cout<<"平均改变位数为："<<count/128<<endl;
+}
+
+void AES::Chang_Sbox()const{
+    b_8 init(0x56);
+    auto row=b_4(init.to_string().substr(0,4)).to_ulong();
+    auto col=b_4(init.to_string().substr(4,8)).to_ulong();
+    auto init_ret=Sbox[row][col];
+    int count=0;
+    for(int i=0; i<8; i++){
+        init[i]=~init[i];
+        auto row=b_4(init.to_string().substr(0,4)).to_ulong();
+        auto col=b_4(init.to_string().substr(4,8)).to_ulong();
+        auto ret=Sbox[row][col];
+        int temp_count=0;
+        for(int j=0; j<8; j++){
+            if(init_ret[j]!=ret[j])temp_count++;
+        }
+        cout<<"S盒输出改变："<<temp_count<<"位"<<endl;
+        count=count+temp_count;
+    }
+    cout<<"平均改变位数为："<<count/8<<endl;
+}
+
+int AES::Search(const b_8&input)const{
+    //cout<<"以下输出都为16进制！"<<endl;
+    //cout<<"原始输入为：";
+    //display(input);
+    //cout<<endl;
+    auto row=b_4(input.to_string().substr(0,4)).to_ulong();
+    auto col=b_4(input.to_string().substr(4,8)).to_ulong();
+    auto temp=Sbox[row][col];
+    int count=1;
+    //cout<<"第"<<count<<"次S盒变换的输出为：";
+    //display(temp);
+    //cout<<endl;
+    while(temp!=input){
+        auto row=b_4(temp.to_string().substr(0,4)).to_ulong();
+        auto col=b_4(temp.to_string().substr(4,8)).to_ulong();
+        temp=Sbox[row][col];
+        count++;
+        //cout<<"第"<<dec<<count<<"次S盒变换的输出为：";
+        //display(temp);
+        //cout<<endl;
+    }
+    cout<<"对于输入:";display(input);
+    cout<<"经过"<<dec<<count<<"次变换，出现输入等于输出"<<endl;
+    return count;
 }

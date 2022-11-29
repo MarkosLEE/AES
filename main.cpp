@@ -15,8 +15,32 @@ int main(){
         {0x01,0xae,0x14,0x94}
     };
     AES a;
+    cout<<"待加密的明文：";
+    a.display(data);
+    cout<<"密钥：";
+    a.display(key);
+    auto ret=a.Encryption(data,key);
+    cout<<"加密后的密文：";
+    a.display(ret);
+    ret=a.Decryption(ret,key);
+    cout<<"解密后的明文：";
+    a.display(ret);
+    // b_8 input(0);
+    // int count=0;
+    // int aim=0;
+    // while(aim!=256){
+    //     count=count+a.Search(input);
+    //     aim++;
+    //     input=b_8(aim);
+    // }
+    // cout<<"平均经过"<<dec<<count/256<<"次变换，"<<"出现输入等于输出"<<endl;
+    //a.Change_Mess(data,key);
+    //a.Chang_Sbox();
+    // auto ret1=(a.mul(b_8(0x3),b_8(8))^a.mul(b_8(0x1),b_8(4))^a.mul(b_8(1),b_8(2))^b_8(0x2));
+    // auto ret2=(a.mul(b_8(0xB),b_8(8))^a.mul(b_8(0xD),b_8(4))^a.mul(b_8(9),b_8(2))^b_8(0xe));
+    // cout<<a.mul(ret2,ret1);
     //a.XOR(data,key);
-    cout<<hex;
+    //cout<<hex;
     //cout<<b_8(0x57)<<'\t';
     //a.xtime(7,b_8(0x57));
     //cout<<a.mul(b_8(0x63),b_8(0x02))<<endl;
@@ -27,10 +51,10 @@ int main(){
     //     cout<<a.mul(a.Bx[0][i],d[i])<<endl;
     // }
     //a.display(temp);
-    a.Encryption(data,key);
-    a.display(data);
-    a.Decryption(data,key);
-    a.display(data);
+    //a.Encryption(data,key);
+    //a.display(data);
+    //a.Decryption(data,key);
+    //a.display(data);
     //auto ret=a.KeyExpansion(key);
     // for(int i=0; i<ret.size(); i++){
     //     for(int col=0; col<ret[i][0].size(); col++){
